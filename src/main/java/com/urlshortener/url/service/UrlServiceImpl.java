@@ -1,0 +1,102 @@
+package com.urlshortener.url.service;
+import java.util.List;
+import java.util.stream.Collectors;
+import com.urlshortener.url.dto.CreateUrlRequest;
+import com.urlshortener.url.dto.UrlResponse;
+import com.urlshortener.url.entity.Url;
+import com.urlshortener.url.repository.UrlRepository;
+import com.urlshortener.user.entity.User;
+import com.urlshortener.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class UrlServiceImpl implements UrlService {
+
+    private final UrlRepository urlRepository;
+    private final UserRepository userRepository;
+
+    @Override
+    public UrlResponse createShortUrl(CreateUrlRequest request) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
+        String shortCode = UUID.randomUUID()
+                .toString()
+                .replace("-", "")
+                .substring(0, 8);
+
+        Url url = Url.builder()
+                .originalUrl(request.getOriginalUrl())
+                .shortCode(shortCode)
+                .clickCount(0L)
+                .createdAt(LocalDateTime.now())
+                .user(user)
+                .build();
+
+        urlRepository.save(url);
+
+        return UrlResponse.builder()
+                .originalUrl(url.getOriginalUrl())
+                .shortCode(url.getShortCode())
+                .shortUrl(
+                        "http://localhost:8080/" + url.getShortCode()
+                )
+                .clickCount(url.getClickCount())
+                .build();
+    }
+
+    @Override
+    public String getOriginalUrl(String shortCode) {
+
+        Url url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() ->
+                        new RuntimeException("Short URL not found")
+                );
+
+        url.setClickCount(url.getClickCount() + 1);
+
+        urlRepository.save(url);
+
+        return url.getOriginalUrl();
+    }
+    @Override
+    public List<UrlResponse> getMyUrls() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
+        return urlRepository.findByUser(user)
+                .stream()
+                .map(url -> UrlResponse.builder()
+                        .originalUrl(url.getOriginalUrl())
+                        .shortCode(url.getShortCode())
+                        .shortUrl(
+                                "http://localhost:8080/"
+                                        + url.getShortCode()
+                        )
+                        .clickCount(url.getClickCount())
+                        .build())
+                .collect(Collectors.toList());
+    }
+}

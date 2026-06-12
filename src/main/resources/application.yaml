@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/url_shortener
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    show-sql: true
+
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+
+app:
+  base-url: http://localhost:8080
+jwt:
+  secret: 7f3c5a9e1b2d4f6a8c0e2g4h6j8k0m2p4r6t8v0x2z4a6c8e0g2i4k6m8o0q2
+  expiration: 86400000
