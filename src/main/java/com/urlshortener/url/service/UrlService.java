@@ -12,4 +12,6 @@ public interface UrlService {
     String getOriginalUrl(String shortCode);
 
     List<UrlResponse> getMyUrls();
+
+    UrlResponse getUrlAnalytics(String shortCode);
 }

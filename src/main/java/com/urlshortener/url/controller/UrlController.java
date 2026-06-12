@@ -27,4 +27,10 @@ public class UrlController {
     public List<UrlResponse> getMyUrls() {
         return urlService.getMyUrls();
     }
+    @GetMapping("/{shortCode}")
+    public UrlResponse getUrlAnalytics(
+            @PathVariable String shortCode
+    ) {
+        return urlService.getUrlAnalytics(shortCode);
+    }
 }

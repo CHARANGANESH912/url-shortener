@@ -99,4 +99,22 @@ public class UrlServiceImpl implements UrlService {
                         .build())
                 .collect(Collectors.toList());
     }
+    @Override
+    public UrlResponse getUrlAnalytics(String shortCode) {
+
+        Url url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() ->
+                        new RuntimeException("Short URL not found")
+                );
+
+        return UrlResponse.builder()
+                .originalUrl(url.getOriginalUrl())
+                .shortCode(url.getShortCode())
+                .shortUrl(
+                        "http://localhost:8080/" + url.getShortCode()
+                )
+                .clickCount(url.getClickCount())
+                .createdAt(url.getCreatedAt())
+                .build();
+    }
 }
