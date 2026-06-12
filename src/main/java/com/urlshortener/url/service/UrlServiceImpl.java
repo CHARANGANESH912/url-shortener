@@ -1,6 +1,6 @@
 package com.urlshortener.url.service;
-import java.util.List;
-import java.util.stream.Collectors;
+
+import com.urlshortener.exception.ResourceNotFoundException;
 import com.urlshortener.url.dto.CreateUrlRequest;
 import com.urlshortener.url.dto.UrlResponse;
 import com.urlshortener.url.entity.Url;
@@ -12,7 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class UrlServiceImpl implements UrlService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new ResourceNotFoundException("User not found")
                 );
 
         String shortCode = UUID.randomUUID()
@@ -56,6 +58,7 @@ public class UrlServiceImpl implements UrlService {
                         "http://localhost:8080/" + url.getShortCode()
                 )
                 .clickCount(url.getClickCount())
+                .createdAt(url.getCreatedAt())
                 .build();
     }
 
@@ -64,7 +67,7 @@ public class UrlServiceImpl implements UrlService {
 
         Url url = urlRepository.findByShortCode(shortCode)
                 .orElseThrow(() ->
-                        new RuntimeException("Short URL not found")
+                        new ResourceNotFoundException("Short URL not found")
                 );
 
         url.setClickCount(url.getClickCount() + 1);
@@ -73,6 +76,7 @@ public class UrlServiceImpl implements UrlService {
 
         return url.getOriginalUrl();
     }
+
     @Override
     public List<UrlResponse> getMyUrls() {
 
@@ -83,7 +87,7 @@ public class UrlServiceImpl implements UrlService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new ResourceNotFoundException("User not found")
                 );
 
         return urlRepository.findByUser(user)
@@ -96,15 +100,17 @@ public class UrlServiceImpl implements UrlService {
                                         + url.getShortCode()
                         )
                         .clickCount(url.getClickCount())
+                        .createdAt(url.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
+
     @Override
     public UrlResponse getUrlAnalytics(String shortCode) {
 
         Url url = urlRepository.findByShortCode(shortCode)
                 .orElseThrow(() ->
-                        new RuntimeException("Short URL not found")
+                        new ResourceNotFoundException("Short URL not found")
                 );
 
         return UrlResponse.builder()
