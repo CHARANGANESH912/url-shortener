@@ -1,8 +1,10 @@
 package com.urlshortener.url.service;
 
 import com.urlshortener.exception.DuplicateResourceException;
+import com.urlshortener.exception.RateLimitExceededException;
 import com.urlshortener.exception.ResourceNotFoundException;
 import com.urlshortener.exception.UrlExpiredException;
+import com.urlshortener.ratelimit.RateLimitService;
 import com.urlshortener.url.dto.CreateUrlRequest;
 import com.urlshortener.url.dto.UpdateUrlRequest;
 import com.urlshortener.url.dto.UrlResponse;
@@ -25,6 +27,7 @@ public class UrlServiceImpl implements UrlService {
 
     private final UrlRepository urlRepository;
     private final UserRepository userRepository;
+    private final RateLimitService rateLimitService;
 
     @Override
     public UrlResponse createShortUrl(CreateUrlRequest request) {
@@ -33,6 +36,15 @@ public class UrlServiceImpl implements UrlService {
                 .getContext()
                 .getAuthentication()
                 .getName();
+
+        if (!rateLimitService
+                .resolveBucket(email)
+                .tryConsume(1)) {
+
+            throw new RateLimitExceededException(
+                    "Rate limit exceeded. Try again later."
+            );
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
@@ -61,6 +73,7 @@ public class UrlServiceImpl implements UrlService {
                     .replace("-", "")
                     .substring(0, 8);
         }
+
         Url url = Url.builder()
                 .originalUrl(request.getOriginalUrl())
                 .shortCode(shortCode)
@@ -69,6 +82,7 @@ public class UrlServiceImpl implements UrlService {
                 .expiresAt(request.getExpiresAt())
                 .user(user)
                 .build();
+
         urlRepository.save(url);
 
         return UrlResponse.builder()
@@ -90,6 +104,7 @@ public class UrlServiceImpl implements UrlService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Short URL not found")
                 );
+
         if (url.getExpiresAt() != null &&
                 url.getExpiresAt().isBefore(LocalDateTime.now())) {
 
@@ -151,6 +166,7 @@ public class UrlServiceImpl implements UrlService {
                 .expiresAt(url.getExpiresAt())
                 .build();
     }
+
     @Override
     public void deleteUrl(String shortCode) {
 
@@ -181,6 +197,7 @@ public class UrlServiceImpl implements UrlService {
 
         urlRepository.delete(url);
     }
+
     @Override
     public UrlResponse updateUrl(
             String shortCode,
