@@ -1,5 +1,6 @@
 package com.urlshortener.url.service;
 
+import com.urlshortener.exception.DuplicateResourceException;
 import com.urlshortener.exception.ResourceNotFoundException;
 import com.urlshortener.url.dto.CreateUrlRequest;
 import com.urlshortener.url.dto.UrlResponse;
@@ -36,11 +37,28 @@ public class UrlServiceImpl implements UrlService {
                         new ResourceNotFoundException("User not found")
                 );
 
-        String shortCode = UUID.randomUUID()
-                .toString()
-                .replace("-", "")
-                .substring(0, 8);
+        String shortCode;
 
+        if (request.getCustomCode() != null &&
+                !request.getCustomCode().isBlank()) {
+
+            if (urlRepository.existsByShortCode(
+                    request.getCustomCode()
+            )) {
+                throw new DuplicateResourceException(
+                        "Custom code already exists"
+                );
+            }
+
+            shortCode = request.getCustomCode();
+
+        } else {
+
+            shortCode = UUID.randomUUID()
+                    .toString()
+                    .replace("-", "")
+                    .substring(0, 8);
+        }
         Url url = Url.builder()
                 .originalUrl(request.getOriginalUrl())
                 .shortCode(shortCode)

@@ -6,7 +6,8 @@ import lombok.Data;
 @Data
 public class CreateUrlRequest {
 
-    @NotBlank
+    @NotBlank(message = "Original URL is required")
     private String originalUrl;
 
+    private String customCode;
 }
