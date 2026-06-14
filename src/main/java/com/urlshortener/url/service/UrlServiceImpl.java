@@ -19,7 +19,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -119,7 +122,10 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public List<UrlResponse> getMyUrls() {
+    public Page<UrlResponse> getMyUrls(
+            int page,
+            int size
+    ) {
 
         String email = SecurityContextHolder
                 .getContext()
@@ -128,24 +134,42 @@ public class UrlServiceImpl implements UrlService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found")
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
                 );
 
-        return urlRepository.findByUser(user)
-                .stream()
-                .map(url -> UrlResponse.builder()
-                        .originalUrl(url.getOriginalUrl())
-                        .shortCode(url.getShortCode())
-                        .shortUrl(
-                                "http://localhost:8080/"
-                                        + url.getShortCode()
-                        )
-                        .clickCount(url.getClickCount())
-                        .createdAt(url.getCreatedAt())
-                        .expiresAt(url.getExpiresAt())
-                        .build())
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Url> urlPage =
+                urlRepository.findByUser(
+                        user,
+                        pageable
+                );
+
+        List<UrlResponse> responses =
+                urlPage.getContent()
+                        .stream()
+                        .map(url -> UrlResponse.builder()
+                                .originalUrl(url.getOriginalUrl())
+                                .shortCode(url.getShortCode())
+                                .shortUrl(
+                                        "http://localhost:8080/"
+                                                + url.getShortCode()
+                                )
+                                .clickCount(url.getClickCount())
+                                .createdAt(url.getCreatedAt())
+                                .expiresAt(url.getExpiresAt())
+                                .build())
+                        .toList();
+
+        return new PageImpl<>(
+                responses,
+                pageable,
+                urlPage.getTotalElements()
+        );
     }
+
 
     @Override
     public UrlResponse getUrlAnalytics(String shortCode) {

@@ -8,6 +8,7 @@ import com.urlshortener.url.service.UrlService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -26,8 +27,11 @@ public class UrlController {
     }
 
     @GetMapping("/my")
-    public List<UrlResponse> getMyUrls() {
-        return urlService.getMyUrls();
+    public Page<UrlResponse> getMyUrls(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return urlService.getMyUrls(page, size);
     }
     @GetMapping("/{shortCode}")
     public UrlResponse getUrlAnalytics(
