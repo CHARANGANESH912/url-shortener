@@ -4,6 +4,7 @@ import com.urlshortener.exception.DuplicateResourceException;
 import com.urlshortener.exception.ResourceNotFoundException;
 import com.urlshortener.exception.UrlExpiredException;
 import com.urlshortener.url.dto.CreateUrlRequest;
+import com.urlshortener.url.dto.UpdateUrlRequest;
 import com.urlshortener.url.dto.UrlResponse;
 import com.urlshortener.url.entity.Url;
 import com.urlshortener.url.repository.UrlRepository;
@@ -179,5 +180,53 @@ public class UrlServiceImpl implements UrlService {
         }
 
         urlRepository.delete(url);
+    }
+    @Override
+    public UrlResponse updateUrl(
+            String shortCode,
+            UpdateUrlRequest request
+    ) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
+                );
+
+        Url url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Short URL not found"
+                        )
+                );
+
+        if (!url.getUser().getId().equals(user.getId())) {
+            throw new ResourceNotFoundException(
+                    "You do not own this URL"
+            );
+        }
+
+        url.setOriginalUrl(request.getOriginalUrl());
+        url.setExpiresAt(request.getExpiresAt());
+
+        urlRepository.save(url);
+
+        return UrlResponse.builder()
+                .originalUrl(url.getOriginalUrl())
+                .shortCode(url.getShortCode())
+                .shortUrl(
+                        "http://localhost:8080/"
+                                + url.getShortCode()
+                )
+                .clickCount(url.getClickCount())
+                .createdAt(url.getCreatedAt())
+                .expiresAt(url.getExpiresAt())
+                .build();
     }
 }

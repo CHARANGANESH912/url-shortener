@@ -2,6 +2,7 @@ package com.urlshortener.url.controller;
 
 import com.urlshortener.common.dto.MessageResponse;
 import com.urlshortener.url.dto.CreateUrlRequest;
+import com.urlshortener.url.dto.UpdateUrlRequest;
 import com.urlshortener.url.dto.UrlResponse;
 import com.urlshortener.url.service.UrlService;
 import jakarta.validation.Valid;
@@ -43,6 +44,16 @@ public class UrlController {
 
         return new MessageResponse(
                 "URL deleted successfully"
+        );
+    }
+    @PutMapping("/{shortCode}")
+    public UrlResponse updateUrl(
+            @PathVariable String shortCode,
+            @Valid @RequestBody UpdateUrlRequest request
+    ) {
+        return urlService.updateUrl(
+                shortCode,
+                request
         );
     }
 }
