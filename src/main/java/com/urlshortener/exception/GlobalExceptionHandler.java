@@ -53,4 +53,18 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(errorResponse);
     }
+    @ExceptionHandler(UrlExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleUrlExpired(
+            UrlExpiredException ex
+    ) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.GONE)
+                .body(errorResponse);
+    }
 }

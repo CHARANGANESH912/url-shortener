@@ -3,6 +3,8 @@ package com.urlshortener.url.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class CreateUrlRequest {
 
@@ -10,4 +12,6 @@ public class CreateUrlRequest {
     private String originalUrl;
 
     private String customCode;
+
+    private LocalDateTime expiresAt;
 }

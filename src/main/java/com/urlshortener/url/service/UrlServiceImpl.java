@@ -2,6 +2,7 @@ package com.urlshortener.url.service;
 
 import com.urlshortener.exception.DuplicateResourceException;
 import com.urlshortener.exception.ResourceNotFoundException;
+import com.urlshortener.exception.UrlExpiredException;
 import com.urlshortener.url.dto.CreateUrlRequest;
 import com.urlshortener.url.dto.UrlResponse;
 import com.urlshortener.url.entity.Url;
@@ -64,9 +65,9 @@ public class UrlServiceImpl implements UrlService {
                 .shortCode(shortCode)
                 .clickCount(0L)
                 .createdAt(LocalDateTime.now())
+                .expiresAt(request.getExpiresAt())
                 .user(user)
                 .build();
-
         urlRepository.save(url);
 
         return UrlResponse.builder()
@@ -77,6 +78,7 @@ public class UrlServiceImpl implements UrlService {
                 )
                 .clickCount(url.getClickCount())
                 .createdAt(url.getCreatedAt())
+                .expiresAt(url.getExpiresAt())
                 .build();
     }
 
@@ -87,6 +89,11 @@ public class UrlServiceImpl implements UrlService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Short URL not found")
                 );
+        if (url.getExpiresAt() != null &&
+                url.getExpiresAt().isBefore(LocalDateTime.now())) {
+
+            throw new UrlExpiredException("URL has expired");
+        }
 
         url.setClickCount(url.getClickCount() + 1);
 
@@ -119,6 +126,7 @@ public class UrlServiceImpl implements UrlService {
                         )
                         .clickCount(url.getClickCount())
                         .createdAt(url.getCreatedAt())
+                        .expiresAt(url.getExpiresAt())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -139,6 +147,7 @@ public class UrlServiceImpl implements UrlService {
                 )
                 .clickCount(url.getClickCount())
                 .createdAt(url.getCreatedAt())
+                .expiresAt(url.getExpiresAt())
                 .build();
     }
 }

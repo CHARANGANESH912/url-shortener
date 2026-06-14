@@ -10,12 +10,9 @@ import java.time.LocalDateTime;
 public class UrlResponse {
 
     private String originalUrl;
-
     private String shortCode;
-
     private String shortUrl;
-
     private Long clickCount;
-
     private LocalDateTime createdAt;
+    private LocalDateTime expiresAt;
 }
