@@ -150,4 +150,34 @@ public class UrlServiceImpl implements UrlService {
                 .expiresAt(url.getExpiresAt())
                 .build();
     }
+    @Override
+    public void deleteUrl(String shortCode) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
+                );
+
+        Url url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Short URL not found"
+                        )
+                );
+
+        if (!url.getUser().getId().equals(user.getId())) {
+            throw new ResourceNotFoundException(
+                    "You do not own this URL"
+            );
+        }
+
+        urlRepository.delete(url);
+    }
 }

@@ -14,4 +14,6 @@ public interface UrlService {
     List<UrlResponse> getMyUrls();
 
     UrlResponse getUrlAnalytics(String shortCode);
+    void deleteUrl(String shortCode);
+
 }

@@ -1,5 +1,6 @@
 package com.urlshortener.url.controller;
 
+import com.urlshortener.common.dto.MessageResponse;
 import com.urlshortener.url.dto.CreateUrlRequest;
 import com.urlshortener.url.dto.UrlResponse;
 import com.urlshortener.url.service.UrlService;
@@ -32,5 +33,16 @@ public class UrlController {
             @PathVariable String shortCode
     ) {
         return urlService.getUrlAnalytics(shortCode);
+    }
+    @DeleteMapping("/{shortCode}")
+    public MessageResponse deleteUrl(
+            @PathVariable String shortCode
+    ) {
+
+        urlService.deleteUrl(shortCode);
+
+        return new MessageResponse(
+                "URL deleted successfully"
+        );
     }
 }
