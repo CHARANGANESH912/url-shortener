@@ -3,10 +3,9 @@ server:
 
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/url_shortener}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: update
@@ -26,5 +25,5 @@ app:
   base-url: http://localhost:8080
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:7f3c5a9e1b2d4f6a8c0e2g4h6j8k0m2p4r6t8v0x2z4a6c8e0g2i4k6m8o0q2}
   expiration: 86400000
